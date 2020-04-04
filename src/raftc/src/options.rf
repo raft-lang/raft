@@ -1,0 +1,16 @@
+use argparse;
+
+fn parse_args(args: list = None) -> argparse.Namespace {
+    parser = argparse.ArgumentParser(description="raft's compiler.");
+    
+    parser.add_argument("input",
+        help="input file or directory");
+    
+    parser.add_argument("-o",
+        dest="output", metavar="output",
+        help="output file (default: a.out)");
+    
+    parser.set_defaults(output="a.out");
+    
+    return parser.parse_args();
+}

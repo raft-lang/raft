@@ -1,0 +1,90 @@
+use alias, keywords;
+
+from lark.lexer use Token;
+
+struct Codegen {
+    fn __init__(self) {
+        self.output = [[0, ""]];
+        self.aliases = alias.Aliases();
+        self.aliases.insert("use", "import");
+        self.aliases.insert("fn", "def");
+        self.aliases.insert("struct", "class");
+        self.aliases.insert("true", "True");
+        self.aliases.insert("false", "False");
+        self.keywords = keywords.Keywords();
+    }
+
+    fn newline(self, indent: int = 0, content: str = "") {
+        last = self.output[-1][0];
+        self.output.append([last + indent, content]);
+    }
+
+    fn line(self, code: str) {
+        self.output[-1][1] += code;
+    }
+
+    fn gen(self, tokens: List[Token]) -> str {
+        current = 0;
+
+        while current < len(tokens) {
+            token = tokens[current];
+            if self.aliases.is_alias(token) {
+                self.line(self.aliases.get_by_value(token) + " ");
+                current += 1;
+                continue;
+            } else if token.r#type == "INDENT" {
+                self.line(":");
+
+                if tokens[current+1].r#type == "DEDENT" {
+                    self.line("pass");
+                }
+
+                self.newline(1);
+            } else if token.r#type == "DEDENT" {
+                self.newline(-1);
+            } else if token.r#type == "SEMICOLON" {
+                self.newline();
+            } else if token.r#type == "TYPE" {
+                name = tokens[current+1].value;
+                current += 2;
+                
+                if tokens[current].value == ":" {
+                    types = ", ";
+                    while tokens[current].value != ";" {
+                        current += 1;
+                        types += tokens[current].value;
+                    }
+                } else if tokens[current].value == "=" {
+                    self.newline(content=name + " = ");
+                    current += 1;
+                    continue;
+                } else {
+                    types = ";";
+                }
+
+                self.newline(content=f"{name} = TypeVar(\"{name}\"{types[:-1]})");
+            } else if token.r#type == "NAME" {
+                if token.value == "r#type" {
+                    token.value = "type";
+                } else if self.keywords.is_foreign(token.value) {
+                    raise keywords.ForeignKeywordException(token.value);
+                }
+
+                self.line(token.value + " ");
+            } else if token.value == "&&" {
+                self.line(" and ");
+            } else if token.value == "||" {
+                self.line(" or ");
+            } else if token.value == "!" {
+                self.line(" not ");
+            } else {
+                self.line(token.value + " ");
+            }
+
+            current += 1;
+        }
+
+        output = ["  " * e[0] + e[1].strip() for e in self.output];
+        return "\n".join(output);
+    }
+}

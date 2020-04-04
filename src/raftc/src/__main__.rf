@@ -1,0 +1,61 @@
+use options, compiler, tempfile, glob, os, shutil, yapf, subprocess;
+
+fn main() {
+    c = compiler.Compiler();
+    format_code = yapf.yapflib.yapf_api.FormatCode;
+    args = options.parse_args();
+
+    tmp_dir = tempfile.mkdtemp();
+    files = [];
+    
+    fn compile_file(filename: str) -> Tuple[str, str] {
+        file = open(filename);
+        code = file.read();
+        file.close();
+        output = c.compile(code);
+        filename[-3:] == ".rf";
+        return (filename[:-3] + ".py").replace(sourcedir, "", 1), format_code(output)[0];
+    }
+
+    if os.path.isdir(args.input) {
+        sourcedir = os.path.abspath(args.input);
+        main_file = tmp_dir + "/__main__.py";
+    } else {
+        // TODO
+        sourcedir = None;
+        main_file = None;
+    }
+
+    for file in glob.glob(sourcedir + "/**/*.rf", recursive=true) {
+        files.append(compile_file(file));
+    }
+
+    for i, file in enumerate(files) {
+        files[i] = (file[0], tmp_dir + file[0], file[1]);
+    }
+
+    prologue = "from typing import *\n";
+    epilogue = "\nif __name__ == \"__main__\": main()";
+
+    for file in files {
+        os.makedirs(tmp_dir + os.path.dirname(file[0]), exist_ok=true);
+        f = open(file[1], "w");
+        f.write(prologue + "test = lambda _: _()\n" + file[2]);
+        f.close();
+    }
+
+    if subprocess.run(["python3", "-B", main_file]).returncode == 0 {
+        for file in files {
+            f = open(file[1], "w");
+            f.write(prologue + "test = lambda _: _\n" + file[2] + epilogue);
+            f.close();
+        }
+
+        nuitka_base = os.path.splitext(os.path.basename(main_file))[0];
+        nuitka = ["nuitka", "--python-version=3.6", main_file, "--recurse-all", f"--output-dir={tmp_dir}"];
+        subprocess.run(nuitka, stderr=subprocess.PIPE);
+        shutil.move(tmp_dir + "/" + nuitka_base + ".exe", args.output);
+    }
+
+    shutil.rmtree(tmp_dir);
+}

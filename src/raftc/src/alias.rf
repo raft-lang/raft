@@ -1,0 +1,55 @@
+from lark.lexer use Token;
+
+struct Aliases {
+    fn __init__(self) {
+        self.rf2py: Dict[str, str] = {};
+        self.py2rf: Dict[str, str] = {};
+    }
+
+    fn insert(self, raft: str, python: str) {
+        self.rf2py[raft] = python;
+        self.py2rf[python] = raft;
+    }
+
+    fn python_to_raft(self, alias: str) -> str {
+        return self.py2rf[alias];
+    }
+
+    fn raft_to_python(self, alias: str) -> str {
+        return self.rf2py[alias];
+    }
+
+    fn get_by_value(self, token: Token) -> str {
+        if self.is_raft_alias(token) {
+            return self.raft_to_python(token.value);
+        } else {
+            return self.python_to_raft(token.value);
+        }
+    }
+
+    fn is_raft_alias(self, token: Token) -> bool {
+        aliases = [e.upper() for e in self.rf2py.keys()];
+        return token.r#type in aliases;
+    }
+
+    fn is_python_alias(self, token: Token) -> bool {
+        aliases = [e for e in self.py2rf.keys()];
+        return token.r#type == "NAME" && token.value in aliases;
+    }
+
+    fn is_alias(self, token: Token) -> bool {
+        return self.is_python_alias(token) || self.is_raft_alias(token);
+    }
+}
+
+#[test]
+fn test_aliases() {
+    aliases = Aliases();
+    aliases.insert("kw1", "kw2");
+    assert aliases.raft_to_python("kw1") == "kw2";
+    assert aliases.rf2py == {"kw1": "kw2"};
+    assert aliases.py2rf == {"kw2": "kw1"};
+    aliases.insert("kw3", "kw4");
+    assert aliases.python_to_raft("kw4") == "kw3";
+    assert aliases.py2rf == {"kw2": "kw1", "kw4": "kw3"};
+}

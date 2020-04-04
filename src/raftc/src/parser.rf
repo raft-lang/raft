@@ -1,0 +1,66 @@
+use lark, grammar;
+
+struct ParseResult {
+    fn __init__(self) {
+        self.decorator = [];
+        self.suite = [];
+    }
+}
+
+struct Transformer(lark.Transformer) {
+    fn __init__(self) {
+        self.result = ParseResult();
+    }
+    
+    fn start(self, _: list) -> ParseResult {
+        return self.result;
+    }
+
+    fn decorator(self, _: list) {
+        self.result.decorator += [_[0], _[1], _[-1]];
+    }
+
+    fn suite(self, _: list) {
+        self.result.suite += [_[0], _[-1]];
+    }
+
+    fn class_suite(self, _: list) {
+        self.result.suite += [_[0], _[-1]];
+    }
+}
+
+struct Parser {
+    fn __init__(self) {
+        self.parser = lark.Lark(
+            grammar.grammar(),
+            parser="lalr",
+            propagate_positions=true,
+            maybe_placeholders=true,
+            transformer=Transformer()
+        );
+    }
+
+    fn lex(self, code: str) {
+        return list(self.parser.lex(code));
+    }
+
+    fn parse(self, code: str) {
+        return self.parser.parse(code);
+    }
+}
+
+#[test]
+fn test_parser() {
+    parser = Parser();
+    code = "#[decorated([{1:2}, {3:4}])] fn func() {}";
+    tokens = parser.lex(code);
+    parsed = parser.parse(code);
+    suite = parsed.suite;
+    decorator = parsed.decorator;
+    assert suite[0].column == 40;
+    assert suite[1].column == 41;
+    assert decorator[0].column == 1;
+    assert decorator[1].column == 2;
+    assert decorator[2].column == 28;
+    assert tokens[-5].value == "func";
+}

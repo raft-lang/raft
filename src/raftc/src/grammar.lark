@@ -1,0 +1,160 @@
+start: (typedef | funcdef | decorated | (import_stmt ";") | classdef | async_funcdef)*
+
+!decorator: "#" "[" dotted_name [ "(" [arguments] ")" ] "]"
+decorators: decorator+
+decorated: decorators (classdef | funcdef | async_funcdef)
+
+typedef: "type" NAME [(":" typelist) | ("=" type)] ";"
+type: (dotted_name ["[" typelist "]"]) | "None"
+typelist: type ("," type)*
+
+async_funcdef: "async" funcdef
+funcdef: "fn" NAME "(" parameters? ")" ["->" type] suite
+struct_funcdef: "fn" NAME "(" "self" ["," parameters] ")" ["->" type] suite
+
+parameters: paramvalue ("," paramvalue)* ["," [ starparams | kwparams]]
+          | starparams
+          | kwparams
+starparams: "*" typedparam? ("," paramvalue)* ["," kwparams]
+kwparams: "**" typedparam
+
+?paramvalue: typedparam ["=" test]
+?typedparam: NAME ":" type
+
+varargslist: (vfpdef ["=" test] ("," vfpdef ["=" test])* ["," [ "*" [vfpdef] ("," vfpdef ["=" test])* ["," ["**" vfpdef [","]]] | "**" vfpdef [","]]]
+  | "*" [vfpdef] ("," vfpdef ["=" test])* ["," ["**" vfpdef [","]]]
+  | "**" vfpdef [","])
+
+vfpdef: NAME
+
+?stmt: simple_stmt | compound_stmt
+?simple_stmt: small_stmt ";"
+?small_stmt: (expr_stmt | del_stmt | flow_stmt | assert_stmt)
+?expr_stmt: testlist_star_expr (annassign | augassign (yield_expr|testlist)
+         | ("=" (yield_expr|testlist_star_expr))*)
+annassign: ":" type "=" test
+?testlist_star_expr: (test|star_expr) ("," (test|star_expr))* [","]
+!augassign: ("+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=")
+del_stmt: "del" exprlist
+?flow_stmt: break_stmt | continue_stmt | return_stmt | raise_stmt | yield_stmt
+break_stmt: "break"
+continue_stmt: "continue"
+return_stmt: "return" [testlist]
+yield_stmt: yield_expr
+raise_stmt: "raise" [test ["from" test]]
+import_stmt: import_name | import_from
+import_name: "use" dotted_as_names
+import_from: "from" dotted_name "use" ("*" | "(" import_as_names ")" | import_as_names)
+import_as_name: NAME ["as" NAME]
+dotted_as_name: dotted_name ["as" NAME]
+import_as_names: import_as_name ("," import_as_name)* [","]
+dotted_as_names: dotted_as_name ("," dotted_as_name)*
+dotted_name: NAME ("." NAME)*
+assert_stmt: "assert" test ["," test]
+
+compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | typedef | funcdef | classdef | decorated | async_stmt
+async_stmt: "async" (funcdef | with_stmt | for_stmt)
+if_stmt: "if" test suite ("else" "if" test suite)* ["else" suite]
+while_stmt: "while" test suite ["else" suite]
+for_stmt: "for" exprlist "in" testlist suite ["else" suite]
+try_stmt: ("try" suite ((except_clause suite)+ ["else" suite] ["finally" suite] | "finally" suite))
+with_stmt: "with" with_item ("," with_item)*  suite
+with_item: test ["as" expr]
+except_clause: "except" [test ["as" NAME]]
+!suite: "{" stmt* "}"
+
+?test: or_test ("if" or_test "else" test)? | lambdef
+?test_nocond: or_test | lambdef_nocond
+lambdef: "lambda" [varargslist] ":" test
+lambdef_nocond: "lambda" [varargslist] ":" test_nocond
+?or_test: and_test ("||" and_test)*
+?and_test: not_test ("&&" not_test)*
+?not_test: "!" not_test -> not
+         | comparison
+?comparison: expr (_comp_op expr)*
+star_expr: "*" expr
+?expr: xor_expr ("|" xor_expr)*
+?xor_expr: and_expr ("^" and_expr)*
+?and_expr: shift_expr ("&" shift_expr)*
+?shift_expr: arith_expr (_shift_op arith_expr)*
+?arith_expr: term (_add_op term)*
+?term: factor (_mul_op factor)*
+?factor: _factor_op factor | power
+
+!_factor_op: "+"|"-"|"~"
+!_add_op: "+"|"-"
+!_shift_op: "<<"|">>"
+!_mul_op: "*"|"@"|"/"|"%"|"//"
+!_comp_op: "<"|">"|"=="|">="|"<="|"!="|"in"|"is"
+
+?power: await_expr ("**" factor)?
+?await_expr: AWAIT? atom_expr
+AWAIT: "await"
+
+?atom_expr: atom_expr "(" [arguments] ")"      -> funccall
+          | atom_expr "[" subscriptlist "]"  -> getitem
+          | atom_expr "." NAME               -> getattr
+          | atom
+
+?atom: "(" [yield_expr|testlist_comp] ")" -> tuple
+     | "[" [testlist_comp] "]"  -> list
+     | "{" [dictorsetmaker] "}" -> dict
+     | NAME -> var
+     | number | string+
+     | "(" test ")"
+     | "..." -> ellipsis
+     | "None"    -> const_none
+     | "true"    -> const_true
+     | "false"   -> const_false
+
+?testlist_comp: (test|star_expr) [comp_for | ("," (test|star_expr))+ [","] | ","]
+subscriptlist: subscript ("," subscript)* [","]
+subscript: test | [test] ":" [test] [sliceop]
+sliceop: ":" [test]
+exprlist: (expr|star_expr) ("," (expr|star_expr))* [","]
+testlist: test ("," test)* [","]
+dictorsetmaker: ( ((test ":" test | "**" expr) (comp_for | ("," (test ":" test | "**" expr))* [","])) | ((test | star_expr) (comp_for | ("," (test | star_expr))* [","])) )
+
+classdef: "struct" NAME ["(" [arguments] ")"] class_suite
+!class_suite: "{" (struct_funcdef | funcdef | decorated)* "}"
+
+arguments: argvalue ("," argvalue)*  ("," [ starargs | kwargs])?
+         | starargs
+         | kwargs
+         | test comp_for
+
+starargs: "*" test ("," "*" test)* ("," argvalue)* ["," kwargs]
+kwargs: "**" test
+
+?argvalue: test ("=" test)?
+
+
+
+comp_iter: comp_for | comp_if | async_for
+async_for: "async" "for" exprlist "in" or_test [comp_iter]
+comp_for: "for" exprlist "in" or_test [comp_iter]
+comp_if: "if" test_nocond [comp_iter]
+
+yield_expr: "yield" [yield_arg]
+yield_arg: "from" test | testlist
+
+
+number: DEC_NUMBER | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | FLOAT_NUMBER | IMAG_NUMBER
+string: STRING
+
+NAME: /(r#)?[a-zA-Z_]\w*/
+COMMENT: /\/\/[^\n]*/
+_NEWLINE: ( /\r?\n[\t ]*/ | COMMENT )+
+
+
+STRING : /[ubf]?r?("(?!"").*?(?<!\\)(\\\\)*?")/i
+
+DEC_NUMBER: /0|[1-9]\d*/i
+HEX_NUMBER.2: /0x[\da-f]*/i
+OCT_NUMBER.2: /0o[0-7]*/i
+BIN_NUMBER.2 : /0b[0-1]*/i
+FLOAT_NUMBER.2: /((\d+\.\d*|\.\d+)(e[-+]?\d+)?|\d+(e[-+]?\d+))/i
+IMAG_NUMBER.2: /\d+j/i | FLOAT_NUMBER "j"i
+
+%ignore /[\t \f]+/
+%ignore _NEWLINE

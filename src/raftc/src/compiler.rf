@@ -1,0 +1,163 @@
+use lark, parser, codegen;
+
+from lark.lexer use Token;
+
+struct Transformer {
+    fn __init__(self) {
+        self.tokens = [];
+    }
+
+    fn handle_parsed(self, token: Token, parsed: list, handle: Callable) {
+        for t in parsed {
+            pos = (t.line, t.column);
+
+            if pos in self.visited {
+                continue;
+            }
+
+            self.visited.append(pos);
+
+            if token.line == t.line && token.column == t.column {
+                handle(token);
+            }
+        }
+    }
+
+    fn suite(self, token: Token) {
+        if token.value == "{" {
+            token.r#type = "INDENT";
+        } else if token.value == "}" {
+            token.r#type = "DEDENT";
+        }
+        self.tokens.append(token);
+    }
+
+    fn decorator(self, token: Token) {
+        if token.value == "[" {
+            return;
+        } else if token.value == "]" {
+            token.r#type = "SEMICOLON";
+            token.value = ";";
+        } else if token.value == "#" {
+            token.r#type = "DECORATOR";
+            token.value = "@";
+        }
+        self.tokens.append(token);
+    }
+
+    fn else_if(self, token: Token) -> Token {
+        if len(self.tokens) == 0 {
+            return token;
+        }
+
+        if self.tokens[-1].r#type == "ELSE" && token.r#type == "IF" {
+            self.tokens.pop();
+            token.r#type = "ELIF";
+            token.value = "elif";
+        }
+
+        return token;
+    }
+
+    fn transform(self, tokens: list, parsed: parser.ParseResult) -> list {
+        for token in tokens {
+            self.visited = [];
+
+            self.handle_parsed(token, parsed.suite, self.suite);
+            self.handle_parsed(token, parsed.decorator, self.decorator);
+
+            token = self.else_if(token);
+
+            if !((token.line, token.column) in self.visited) {
+                self.tokens.append(token);
+            }
+        }
+
+        return self.tokens;
+    }
+}
+
+#[test]
+fn test_transformer() {
+    p = parser.Parser();
+    code = "#[decorated([{1:2}, {3:4}])] fn func() {}";
+    tokens = Transformer().transform(p.lex(code), p.parse(code));
+    assert tokens[0].value == "@";
+
+    types = {
+        0: "DECORATOR",
+        1: "NAME",
+        4: "LBRACE",
+        14: "RBRACE",
+        -2: "INDENT",
+        -1: "DEDENT",
+    };
+
+    for key, value in types.items() {
+        assert tokens[key].r#type == value;
+    }
+
+    code = "fn func() { if 1 {} else if 2 {} else if 3 {} else {} }";
+    tokens = Transformer().transform(p.lex(code), p.parse(code));
+
+    types = {
+        4: "INDENT",
+        5: "IF",
+        7: "INDENT",
+        8: "DEDENT",
+        9: "ELIF",
+        11: "INDENT",
+        12: "DEDENT",
+        13: "ELIF",
+        15: "INDENT",
+        16: "DEDENT",
+        17: "ELSE",
+        18: "INDENT",
+        19: "DEDENT",
+        20: "DEDENT",
+    };
+
+    for key, value in types.items() {
+        assert tokens[key].r#type == value;
+    }
+}
+
+struct Compiler {
+    fn __init__(self) {
+        self.parser = parser.Parser();
+    }
+
+    fn compile(self, code: str) -> str {
+        tokens = self.parser.lex(code);
+        parsed = self.parser.parse(code);
+        tokens = Transformer().transform(tokens, parsed);
+        cg = codegen.Codegen();
+        return cg.gen(tokens);
+    }
+}
+
+#[test]
+fn test_compiler() {
+    c = Compiler();
+
+    fn test_compile(c1: str, c2: str) {
+        c1 = compile(c.compile(c1), "<string>", "exec");
+        c2 = compile(c2, "<string>", "exec");
+        assert c1 == c2;
+    }
+
+    test_compile(
+        "fn test() {}",
+        "def test(): pass"
+    );
+
+    test_compile(
+        "fn test() { return {1:2, 3:4}; }",
+        "def test(): return {1:2, 3:4}"
+    );
+
+    test_compile(
+        "#[decorated([{1:2}, {3:4}])] fn func() {}",
+        "@decorated([{1:2}, {3:4}])\ndef func(): pass"
+    );
+}

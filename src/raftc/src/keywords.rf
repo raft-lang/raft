@@ -1,0 +1,24 @@
+struct Keywords {
+    fn __init__(self) {
+        self.foreign = ["not", "and", "or", "pass", "global", "nonlocal", "elif"];
+    }
+
+    fn is_foreign(self, keyword: str) -> bool {
+        return keyword in self.foreign;
+    }
+}
+
+struct ForeignKeywordException(Exception) {
+    fn __init__(self, keyword: str) {
+        msg = f"usage of foreign keyword: `{keyword}`";
+        super(Exception, self).__init__(self, msg);
+    }
+}
+
+#[test]
+fn test_foreign_keywords() {
+    kw = Keywords();
+    assert kw.is_foreign("not");
+    assert kw.is_foreign("and");
+    assert kw.is_foreign("or");
+}
