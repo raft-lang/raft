@@ -1,6 +1,6 @@
 use argparse;
 
-fn parse_args(args: list = None) -> argparse.Namespace {
+fn parse_args(args: Optional[List[str]] = None) -> argparse.Namespace {
     parser = argparse.ArgumentParser(description="raft's compiler.");
     
     parser.add_argument("input",
