@@ -34,7 +34,9 @@ fn main() {
         files[i] = (file[0], tmp_dir + file[0], file[1]);
     }
 
-    prologue = "from typing import *\n";
+    prologue =
+        "from typing import *\n"
+        "from functools import lru_cache as cache\n";
     epilogue = "\nif __name__ == \"__main__\": main()";
 
     for file in files {
