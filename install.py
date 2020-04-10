@@ -2,10 +2,6 @@
 
 import os, json, sys, platform
 
-if os.getuid() != 0:
-    print("\x1b[1;31mError:\x1b[m This script must be run with sudo:\n\x1b[1msudo ./install.py\x1b[m")
-    sys.exit(-1)
-
 path = os.path.expanduser("~") + '/.raft/'
 
 os.makedirs(path, exist_ok=True)
@@ -28,24 +24,24 @@ def run(a, b, c):
     c()
     print(f'\r\x1b[K\x1b[1;32m  {a[1]}\x1b[m {b}.')
 
-pip = lambda: os.system('sudo -H pip3 install -r requirements.txt >/dev/null')
-rfc = lambda: os.system(f'{env["CC"]} -O3 -lpython{env["PYV"]} -I/usr/include/python{env["PYV"]} -o ~/.raft/bin/rfc src/rfc/rfc.c')
+pip = lambda: os.system('pip3 install -r requirements.txt >/dev/null')
+rfc = lambda: os.system(f'{env["CC"]} -O3 -lpython{env["PYV"]} -I/usr/include/python{env["PYV"]} -o {path}bin/rfc src/rfc/rfc.c')
 
 def raftc_rfc():
     with open('src/raftc/src/grammar.lark') as file:
         grammar = file.read()
     with open('src/raftc/src/grammar.rf', 'w') as file:
         file.write(f'fn grammar() -> str {{ return {json.dumps(grammar)}; }}')
-    os.system('~/.raft/bin/rfc src/raftc/src -o ${HOME}/.raft/bin/raftc-rfc')
+    os.system(f'{path}bin/rfc src/raftc/src -o {path}bin/raftc-rfc')
 
-raftc = lambda: os.system('~/.raft/bin/raftc-rfc src/raftc/src -o ${HOME}/.raft/bin/raftc')
+raftc = lambda: os.system(f'{path}bin/raftc-rfc src/raftc/src -o {path}bin/raftc')
 
 def nuitka():
     p = platform.system()
     if p == "Linux":
-        os.system("sudo apt -y install nuitka 1>/dev/null 2>/dev/null")
+        os.system("apt -y install nuitka 1>/dev/null 2>/dev/null")
     else:
-        os.system("sudo -H pip3 install nuitka >/dev/null")
+        os.system("pip3 install nuitka >/dev/null")
 
 run(('Installing', ' Installed'), 'nuitka', nuitka)
 run(('Installing', ' Installed'), 'requirements', pip)
