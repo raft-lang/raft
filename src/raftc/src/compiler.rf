@@ -61,7 +61,7 @@ struct Transformer {
 
     fn transform(self, tokens: list, parsed: parser.ParseResult) -> list {
         for token in tokens {
-            self.visited = [];
+            self.visited: List[Tuple[int, int]] = [];
 
             self.handle_parsed(token, parsed.suite, self.suite);
             self.handle_parsed(token, parsed.decorator, self.decorator);
@@ -141,9 +141,9 @@ fn test_compiler() {
     c = Compiler();
 
     fn test_compile(c1: str, c2: str) {
-        c1 = compile(c.compile(c1), "<string>", "exec");
-        c2 = compile(c2, "<string>", "exec");
-        assert c1 == c2;
+        r1 = compile(c.compile(c1), "<string>", "exec");
+        r2 = compile(c2, "<string>", "exec");
+        assert r1 == r2;
     }
 
     test_compile(
