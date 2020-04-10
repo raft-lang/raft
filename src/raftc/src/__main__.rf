@@ -21,9 +21,8 @@ fn main() {
         sourcedir = os.path.abspath(args.input);
         main_file = tmp_dir + "/__main__.py";
     } else {
-        // TODO
-        sourcedir = None;
-        main_file = None;
+        sourcedir = os.path.abspath(os.path.dirname(args.input));
+        main_file = tmp_dir + "/" + os.path.splitext(os.path.basename(args.input))[0] + ".py";
     }
 
     for file in glob.glob(sourcedir + "/**/*.rf", recursive=true) {
