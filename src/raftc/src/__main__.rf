@@ -1,9 +1,9 @@
 use options, compiler, tempfile, glob, os, shutil, yapf, subprocess;
 
 fn main() {
+    args = options.parse_args();
     c = compiler.Compiler();
     format_code = yapf.yapflib.yapf_api.FormatCode;
-    args = options.parse_args();
 
     tmp_dir = tempfile.mkdtemp();
     files = [];
