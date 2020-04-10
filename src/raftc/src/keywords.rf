@@ -1,6 +1,6 @@
 struct Keywords {
     fn __init__(self) {
-        self.foreign = ["not", "and", "or", "pass", "global", "nonlocal", "elif"];
+        self.foreign = ["not", "and", "or", "pass", "global", "nonlocal", "elif", "raise"];
     }
 
     fn is_foreign(self, keyword: str) -> bool {

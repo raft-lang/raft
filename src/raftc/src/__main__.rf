@@ -35,8 +35,20 @@ fn main() {
 
     prologue =
         "from typing import *\n"
-        "from functools import lru_cache as cache\n";
-    epilogue = "\nif __name__ == \"__main__\": main()";
+        "from functools import lru_cache as cache\n"
+        "def panic(*args, **kwargs):\n"
+        "\tif len(args) == 1:\n"
+        "\t\tif isinstance(args[0], Exception): raise args[0]\n"
+        "\traise Exception(*args, **kwargs)\n"
+        "def unreachable(*args):\n"
+        "\timport sys, inspect\n"
+        "\tsys.exit(f\"thread 'main' entered unreachable code at {inspect.stack()[1].function}: {', '.join(repr(a) for a in args)}\")\n";
+    epilogue =
+        "\nif __name__ == \"__main__\":\n"
+        "\ttry: main()\n"
+        "\texcept Exception as _:\n"
+        "\t\timport sys, inspect\n"
+        "\t\tsys.exit(f\"thread 'main' panicked at {inspect.trace()[-2].function}: {_}\\n\")";
 
     for file in files {
         os.makedirs(tmp_dir + os.path.dirname(file[0]), exist_ok=true);

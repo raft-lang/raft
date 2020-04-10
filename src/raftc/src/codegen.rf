@@ -67,7 +67,7 @@ struct Codegen {
                 if token.value == "r#type" {
                     token.value = "type";
                 } else if self.keywords.is_foreign(token.value) {
-                    raise keywords.ForeignKeywordException(token.value);
+                    panic(keywords.ForeignKeywordException(token.value));
                 }
 
                 self.line(token.value + " ");
