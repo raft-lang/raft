@@ -4,6 +4,7 @@ struct ParseResult {
     fn __init__(self) {
         self.decorator = [];
         self.suite = [];
+        self.let_stmt = [];
     }
 }
 
@@ -20,12 +21,20 @@ struct Transformer(lark.Transformer) {
         self.result.decorator += [_[0], _[1], _[-1]];
     }
 
-    fn suite(self, _: list) {
+    fn suite(self, _: list) -> list {
         self.result.suite += [_[0], _[-1]];
+        return _;
     }
 
     fn class_suite(self, _: list) {
         self.result.suite += [_[0], _[-1]];
+    }
+
+    fn let_stmt(self, _: list) {
+        self.result.let_stmt.append(_[0]);
+        self.result.let_stmt.append(_[1]);
+        self.result.let_stmt.append(_[2]);
+        self.result.let_stmt.append(_[4][0]);
     }
 }
 
