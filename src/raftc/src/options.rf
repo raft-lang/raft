@@ -12,7 +12,7 @@ fn parse_args(args: Optional[List[str]] = None) -> argparse.Namespace {
     
     parser.add_argument("--lib",
         action="store_true",
-        help="output file (default: a.out)");
+        help="compile as library");
     
     parser.set_defaults(output="a.out");
     
