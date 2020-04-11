@@ -54,14 +54,13 @@ dotted_as_names: dotted_as_name ("," dotted_as_name)*
 dotted_name: NAME ("." NAME)*
 assert_stmt: "assert" test ["," test]
 
-compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | typedef | funcdef | classdef | decorated | async_stmt
-async_stmt: "async" (funcdef | with_stmt | for_stmt)
+compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | let_stmt | typedef | funcdef | classdef | decorated | async_stmt
+async_stmt: "async" (funcdef | let_stmt | for_stmt)
 if_stmt: "if" test suite ("else" "if" test suite)* ["else" suite]
 while_stmt: "while" test suite ["else" suite]
 for_stmt: "for" exprlist "in" testlist suite ["else" suite]
 try_stmt: ("try" suite ((except_clause suite)+ ["else" suite] ["finally" suite] | "finally" suite))
-with_stmt: "with" with_item ("," with_item)*  suite
-with_item: test ["as" expr]
+!let_stmt: "let" NAME "=" test suite
 except_clause: "except" [test ["as" NAME]]
 !suite: "{" stmt* "}"
 

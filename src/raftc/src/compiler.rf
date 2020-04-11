@@ -5,6 +5,7 @@ from lark.lexer use Token;
 struct Transformer {
     fn __init__(self) {
         self.tokens = [];
+        self.let_name = "";
     }
 
     fn handle_parsed(self, token: Token, parsed: list, handle: Callable) {
@@ -28,6 +29,22 @@ struct Transformer {
             token.r#type = "INDENT";
         } else if token.value == "}" {
             token.r#type = "DEDENT";
+        }
+        self.tokens.append(token);
+    }
+
+    fn let_stmt(self, token: Token) {
+        if token.value == "{" {
+            self.tokens.append(Token("AS", "as"));
+            self.tokens.append(Token("NAME", self.let_name));
+            token.r#type = "INDENT";
+        } else if token.value == "=" {
+            return;
+        } else if token.value == "let" {
+            token.value = "with";
+        } else if token.r#type == "NAME" {
+            self.let_name = token.value;
+            return;
         }
         self.tokens.append(token);
     }
@@ -63,6 +80,7 @@ struct Transformer {
         for token in tokens {
             self.visited: List[Tuple[int, int]] = [];
 
+            self.handle_parsed(token, parsed.let_stmt, self.let_stmt);
             self.handle_parsed(token, parsed.suite, self.suite);
             self.handle_parsed(token, parsed.decorator, self.decorator);
 
