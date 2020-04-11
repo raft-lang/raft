@@ -62,7 +62,13 @@ fn main() {
         f.close();
     }
 
-    if subprocess.run(["python3", "-B", main_file]).returncode == 0 {
+    if args.no_test {
+        tests = true;
+    } else {
+        tests = subprocess.run(["python3", "-B", main_file]).returncode == 0;
+    }
+
+    if tests {
         for file in files {
             f = open(file[1], "w");
             f.write(prologue + "test = lambda _: _\n" + file[2] + epilogue);

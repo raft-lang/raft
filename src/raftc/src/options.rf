@@ -14,6 +14,10 @@ fn parse_args(args: Optional[List[str]] = None) -> argparse.Namespace {
         action="store_true",
         help="compile as library");
     
+    parser.add_argument("--no-test",
+        action="store_true",
+        help="disable running tests");
+    
     parser.set_defaults(output="a.out");
     
     return parser.parse_args();
