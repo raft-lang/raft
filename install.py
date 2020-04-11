@@ -29,9 +29,9 @@ rfc = lambda: os.system(f'{env["CC"]} -O3 -lpython{env["PYV"]} -I/usr/include/py
 
 def raftc_rfc():
     with open('src/raftc/src/grammar.lark') as file:
-        grammar = file.read()
+        grammar = f'/// Returns lark grammar for Raft.\nfn grammar() -> str {{ return {json.dumps(file.read())}; }}'
     with open('src/raftc/src/grammar.rf', 'w') as file:
-        file.write(f'fn grammar() -> str {{ return {json.dumps(grammar)}; }}')
+        file.write(grammar)
     os.system(f'{path}bin/rfc src/raftc/src -o {path}bin/raftc-rfc')
 
 raftc = lambda: os.system(f'{path}bin/raftc-rfc src/raftc/src -o {path}bin/raftc')
