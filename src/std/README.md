@@ -65,10 +65,10 @@ fn parallel_map(f: Callable, x: list) -> list {
 
     // Spawn threads.
     threads = [];
-    threads.append(std.thread.spawn(func(3, x[n*3:])));
-    threads.append(std.thread.spawn(func(2, x[n*2:n*3])));
-    threads.append(std.thread.spawn(func(1, x[n:n*2])));
-    threads.append(std.thread.spawn(func(0, x[:n])));
+
+    for i in range(4) {
+        threads.append(thread.spawn(func(i, x[n*i:n*(i+1)])));
+    }
 
     // Join all threads.
     for t in threads {

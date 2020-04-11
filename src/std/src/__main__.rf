@@ -27,10 +27,10 @@ fn test_parallel_map() {
         }
 
         threads = [];
-        threads.append(thread.spawn(func(3, x[n*3:])));
-        threads.append(thread.spawn(func(2, x[n*2:n*3])));
-        threads.append(thread.spawn(func(1, x[n:n*2])));
-        threads.append(thread.spawn(func(0, x[:n])));
+
+        for i in range(4) {
+            threads.append(thread.spawn(func(i, x[n*i:n*(i+1)])));
+        }
 
         for t in threads {
             t.join();
@@ -39,7 +39,7 @@ fn test_parallel_map() {
         return sum(result, []);
     }
 
-    fn inc(n: int) -> int { return n + 1; } 
+    fn inc(n: int) -> int { return n + 1; }
     assert parallel_map(inc, range(0x8000)) == list(map(inc, range(0x8000)));
 }
 
