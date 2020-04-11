@@ -2,6 +2,6 @@ language: python
 python:
   - "3.6-dev"
 install:
-  - sudo apt update && sudo apt install clang nuitka
+  - sudo apt update && sudo apt install clang
 script:
   - python3 install.py
