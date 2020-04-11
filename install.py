@@ -44,7 +44,7 @@ def nuitka():
         os.system("pip3 install nuitka >/dev/null")
 
 def stdlib():
-    os.system(f"{path}bin/raftc src/std/src -o src/std/lib/raft_std --lib")
+    os.system(f"{path}bin/raftc src/std/src -o src/std/lib/raft_std --lib --no-test")
     os.system("cd src/std && pip3 install . >/dev/null")
 
 run(('Installing', ' Installed'), 'nuitka', nuitka)
