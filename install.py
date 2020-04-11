@@ -43,11 +43,16 @@ def nuitka():
     else:
         os.system("pip3 install nuitka >/dev/null")
 
+def stdlib():
+    os.system(f"{path}bin/raftc src/std/src -o src/std/lib/raft_std --lib")
+    os.system("cd src/std && pip3 install . >/dev/null")
+
 run(('Installing', ' Installed'), 'nuitka', nuitka)
 run(('Installing', ' Installed'), 'requirements', pip)
 run((' Compiling', '  Compiled'), 'rfc', rfc)
 run((' Compiling', '  Compiled'), 'raftc (by rfc)', raftc_rfc)
 run((' Compiling', '  Compiled'), 'raftc (by raftc)', raftc)
+run((' Compiling', '  Compiled'), 'std', stdlib)
 
 os.remove(path + "bin/rfc")
 os.remove(path + "bin/raftc-rfc")
