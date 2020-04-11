@@ -10,6 +10,10 @@ fn parse_args(args: Optional[List[str]] = None) -> argparse.Namespace {
         dest="output", metavar="output",
         help="output file (default: a.out)");
     
+    parser.add_argument("--lib",
+        action="store_true",
+        help="output file (default: a.out)");
+    
     parser.set_defaults(output="a.out");
     
     return parser.parse_args();

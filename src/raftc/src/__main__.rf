@@ -5,7 +5,12 @@ fn main() {
     c = compiler.Compiler();
     format_code = yapf.yapflib.yapf_api.FormatCode;
 
-    tmp_dir = tempfile.mkdtemp();
+    if args.lib {
+        tmp_dir = args.output;
+    } else {
+        tmp_dir = tempfile.mkdtemp();
+    }
+    
     files = [];
     
     fn compile_file(filename: str) -> Tuple[str, str] {
@@ -64,11 +69,15 @@ fn main() {
             f.close();
         }
 
-        nuitka_base = os.path.splitext(os.path.basename(main_file))[0];
-        nuitka = ["nuitka", "--python-version=3.6", main_file, "--recurse-all", f"--output-dir={tmp_dir}"];
-        subprocess.run(nuitka, stderr=subprocess.PIPE);
-        shutil.move(tmp_dir + "/" + nuitka_base + ".exe", args.output);
+        if !args.lib {
+            nuitka_base = os.path.splitext(os.path.basename(main_file))[0];
+            nuitka = ["nuitka", "--python-version=3.6", main_file, "--recurse-all", f"--output-dir={tmp_dir}"];
+            subprocess.run(nuitka, stderr=subprocess.PIPE);
+            shutil.move(tmp_dir + "/" + nuitka_base + ".exe", args.output);
+        }
     }
 
-    shutil.rmtree(tmp_dir);
+    if !args.lib {
+        shutil.rmtree(tmp_dir);
+    }
 }
