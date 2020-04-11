@@ -1,8 +1,11 @@
-start: (typedef | funcdef | decorated | (import_stmt ";") | classdef | async_funcdef)*
+start: (documented | typedef | funcdef | decorated | (import_stmt ";") | classdef | async_funcdef)*
 
 !decorator: "#" "[" dotted_name [ "(" [arguments] ")" ] "]"
 decorators: decorator+
 decorated: decorators (classdef | funcdef | async_funcdef)
+
+documented: raftdoc (classdef | funcdef)
+raftdoc: RAFTDOC+
 
 typedef: "type" NAME [(":" typelist) | ("=" type)] ";"
 type: (dotted_name ["[" typelist "]"]) | "None"
@@ -145,6 +148,7 @@ NAME: /(r#)?[a-zA-Z_]\w*/
 COMMENT: /\/\/[^\n]*/
 _NEWLINE: ( /\r?\n[\t ]*/ | COMMENT )+
 
+RAFTDOC.2: /\/\/\/[^\n]*/
 
 STRING : /[ubf]?r?("(?!"").*?(?<!\\)(\\\\)*?")/i
 

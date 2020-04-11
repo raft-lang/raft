@@ -4,6 +4,7 @@ from lark.lexer use Token;
 
 struct Codegen {
     fn __init__(self) {
+        self.docs = [];
         self.output = [[0, ""]];
         self.aliases = alias.Aliases();
         self.aliases.insert("use", "import");
@@ -36,11 +37,26 @@ struct Codegen {
             } else if token.r#type == "INDENT" {
                 self.line(":");
 
-                if tokens[current+1].r#type == "DEDENT" {
-                    self.line("pass");
+                doc = "";
+
+                for line in self.docs {
+                    doc += line[3:] + "\n";
                 }
 
-                self.newline(1);
+                if tokens[current+1].r#type == "DEDENT" {
+                    if doc == "" {
+                        self.line("pass");
+                    } else {
+                        self.line(repr(doc));
+                    }
+                }
+                
+                if doc != "" {
+                    self.newline(1, content=repr(doc));
+                    self.newline();
+                } else {
+                    self.newline(1);
+                }
             } else if token.r#type == "DEDENT" {
                 self.newline(-1);
             } else if token.r#type == "SEMICOLON" {
@@ -64,6 +80,8 @@ struct Codegen {
                 }
 
                 self.newline(content=f"{name} = TypeVar(\"{name}\"{types[:-1]})");
+            } else if token.r#type == "RAFTDOC" {
+                self.docs.append(token.value);
             } else if token.r#type == "NAME" {
                 if token.value == "r#type" {
                     token.value = "type";
