@@ -1,0 +1,13 @@
+use threading, time;
+
+struct Thread(threading.Thread) {}
+
+fn spawn(target: Callable) -> Thread {
+    thread = Thread(target=target);
+    thread.start();
+    return thread;
+}
+
+fn sleep(seconds: float) {
+    time.sleep(seconds);
+}

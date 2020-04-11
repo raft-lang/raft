@@ -11,6 +11,7 @@ struct Codegen {
         self.aliases.insert("struct", "class");
         self.aliases.insert("true", "True");
         self.aliases.insert("false", "False");
+        self.aliases.insert("raft_std", "std");
         self.keywords = keywords.Keywords();
     }
 

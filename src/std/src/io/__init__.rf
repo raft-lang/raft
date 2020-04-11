@@ -1,0 +1,2 @@
+from io use *;
+from sys use stdout, stderr, stdin;

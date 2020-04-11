@@ -1,0 +1,63 @@
+from __init__ use *;
+
+#[test]
+fn test_thread() {
+    arr = [];
+    
+    fn func() {
+        thread.sleep(0.1);
+        arr.append(2);
+    }
+
+    t = thread.spawn(func);
+    arr.append(1);
+    t.join();
+    assert arr == [1, 2];
+}
+
+#[test]
+fn test_parallel_map() {
+    fn parallel_map(f: Callable, x: list) -> list {
+        x = list(x);
+        n = int(len(x) / 4);
+        result = [None] * 4;
+
+        fn func(i: int, a: list) {
+            result[i] = list(map(f, a));
+        }
+
+        threads = [];
+        threads.append(thread.spawn(func(3, x[n*3:])));
+        threads.append(thread.spawn(func(2, x[n*2:n*3])));
+        threads.append(thread.spawn(func(1, x[n:n*2])));
+        threads.append(thread.spawn(func(0, x[:n])));
+
+        for t in threads {
+            t.join();
+        }
+
+        return sum(result, []);
+    }
+
+    fn inc(n: int) -> int { return n + 1; } 
+    assert parallel_map(inc, range(0x8000)) == list(map(inc, range(0x8000)));
+}
+
+#[test]
+fn test_fs() {
+    file = "test.txt";
+    data = "some data";
+
+    fs.write_string(file, data);
+    assert fs.read_to_string(file) == data;
+    fs.remove(file);
+}
+
+#[test]
+fn test_io() {
+    b = io.BytesIO(b"\x00\x01");
+    b.getbuffer()[1] = 0xff;
+    assert b.getvalue() == b"\x00\xff";
+}
+
+fn main() {}

@@ -1,0 +1,14 @@
+from os use remove;
+
+fn read_to_string(filename: str) -> str {
+    file = open(filename, "r");
+    data = file.read();
+    file.close();
+    return data;
+}
+
+fn write_string(filename: str, data: str) {
+    file = open(filename, "w");
+    file.write(data);
+    file.close();
+}
